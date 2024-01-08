@@ -40,13 +40,28 @@ async def archive(request):
         return response
 
     except asyncio.CancelledError:
-        proc.terminate()
+        proc.kill()
         logging.info(u'Download was interrupted')
 
         raise
 
+    except IndexError:
+        proc.kill()
+        logging.info(u'Too big')
+        raise
+
+    except SystemExit:
+        proc.kill()
+        logging.info(u'SystemExit')
+        raise
+
+    except KeyboardInterrupt:
+        proc.kill()
+        logging.info(u'Keyboard Interrupted')
+        raise
+
     finally:
-        proc.terminate()
+        proc.kill()
         return response
 
 
