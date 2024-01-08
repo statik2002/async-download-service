@@ -27,15 +27,27 @@ async def archive(request):
     response.headers['Content-Disposition'] = 'attachment; filename="archive.zip"'
     await response.prepare(request)
 
-    while True:
-        logging.info(u'Sending archive chunk ...')
-        stdout = await proc.stdout.read(100 * 1024)
-        if not stdout:
-            break
+    try:
+        while True:
+            logging.info(u'Sending archive chunk ...')
+            stdout = await proc.stdout.read(100 * 1024)
+            if not stdout:
+                break
 
-        await response.write(stdout)
+            await response.write(stdout)
+            await asyncio.sleep(10)
 
-    return response
+        return response
+
+    except asyncio.CancelledError:
+        proc.terminate()
+        logging.info(u'Download was interrupted')
+
+        raise
+
+    finally:
+        proc.terminate()
+        return response
 
 
 async def handle_index_page(request):
